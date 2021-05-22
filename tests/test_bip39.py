@@ -2,7 +2,12 @@
 
 import pytest
 
-#from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple, TypeVar, Union
+import pathlib
+import json
+
+TESTVECTORS_PATH = pathlib.Path(__file__).parent.joinpath("testvectors.json")
+
+# from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple, TypeVar, Union
 from typing import List, Tuple
 
 from bip39 import (
@@ -17,23 +22,13 @@ from bip39 import (
 ### Testcases encoding and decoding of BIP39 mnemonic phrases ##########################################################
 ########################################################################################################################
 
-def load_test_vectors() -> List[Tuple[bytes, str]]:
+
+def load_test_vectors() -> List[Tuple[bytes, str, str]]:
     """Load the BIP39 test vectors from local storage.
     Original source for test vectors: https://github.com/trezor/python-mnemonic/blob/master/vectors.json
     """
-    import json
-    import os
-
-    if os.path.isfile("./testvectors.json"):
-        TESTVECTORS_PATH = "./testvectors.json"
-    elif os.path.isfile("./tests/testvectors.json"):
-        TESTVECTORS_PATH = "./tests/testvectors.json"
-    else:
-        assert False,"No testvectors.json file present to extract test data!"
-
     with open(TESTVECTORS_PATH) as f:
         vectors = json.load(f)
-
     return [(bytes.fromhex(entropy), phrase, seed) for entropy, phrase, seed, _ in vectors["english"]]
 
 
@@ -44,13 +39,16 @@ TEST_VECTORS = load_test_vectors()
 def test_encode_bytes__official_vectors(entropy: bytes, phrase: str, seed: str):
     assert encode_bytes(entropy) == phrase
 
+
 @pytest.mark.parametrize("entropy, phrase, seed", TEST_VECTORS)
 def test_decode_phrase__official_vectors(entropy: bytes, phrase: str, seed: str):
     assert decode_phrase(phrase) == entropy
 
+
 @pytest.mark.parametrize("entropy, phrase, seed", TEST_VECTORS)
 def test_seed_phrase__official_vectors(entropy: bytes, phrase: str, seed: str):
     assert phrase_to_seed(phrase, passphrase="TREZOR").hex() == seed
+
 
 ### Additional tests ###
 
@@ -115,10 +113,12 @@ PHRASES_INVALID_WORDS = [
     "eight era guard oak fox rent day fee pool kid noble one pact bag slab april ugly job law razor blur try dose peón",
 ]
 
+
 @pytest.mark.parametrize("phrase", PHRASES)
 def test_encode_decode(phrase: str):
     entropy = decode_phrase(phrase)
     assert encode_bytes(entropy) == phrase
+
 
 @pytest.mark.parametrize(
     "num_bytes, num_words",
@@ -128,12 +128,14 @@ def test_encode_bytes__valid_length(num_bytes: int, num_words: int):
     phrase = encode_bytes(b"\x00" * num_bytes)
     assert len(phrase.split()) == num_words
 
+
 @pytest.mark.parametrize(
     "num_bytes", (num_bytes for num_bytes in range(64) if num_bytes * 8 not in {128, 160, 192, 224, 256})
 )
 def test_encode_bytes__invalid_length(num_bytes: int):
     with pytest.raises(EncodingError):
         encode_bytes(b"\x00" * num_bytes)
+
 
 @pytest.mark.parametrize("phrase", PHRASES_INVALID_LENGTH)
 def test_decode_phrase__invalid_length(phrase: str):
