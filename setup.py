@@ -8,10 +8,10 @@ long_description = (here / "README.md").read_text()
 
 setup(
     name="bip39",
-    version="0.0.1",
+    version="0.0.2",
     author="Aljosha Judmayer and Philipp Schindler",
     author_email="ajudmayer@sba-research.org",
-    description="A self-contained and simple BIP39 implemenation in Python",
+    description="A self-contained and simple BIP39 implementation in Python",
     long_description=long_description,
     long_description_content_type = "text/markdown",
     url="https://github.com/de-centralized-systems/python-bip39/",
