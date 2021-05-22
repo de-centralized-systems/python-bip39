@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
 import argparse
-import hashlib # for checking integrity of wordlist and mnemonic phrase checksum
-import hmac # for toseed functionality
-import unicodedata # as required by toseed functionality to perform NFKD normalization of mnemonic phrase 
+import hashlib  # for checking integrity of wordlist and mnemonic phrase checksum
+import hmac  # for toseed functionality
+import unicodedata  # as required by toseed functionality to perform NFKD normalization of mnemonic phrase
 
-from typing import Tuple, Dict, Optional, List # for typing 
+from typing import Tuple, Dict, Optional, List  # for typing
 
 ########################################################################################################################
 ### Wordlist definition ################################################################################################
 ########################################################################################################################
+
 
 def verify_wordlist(*words: str) -> Tuple[str, ...]:
     """Verifies that the words given in this source file match the English wordlist specified in BIP39.
@@ -17,8 +18,12 @@ def verify_wordlist(*words: str) -> Tuple[str, ...]:
     https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt
     """
     words_sha256 = hashlib.sha256(("\n".join(words) + "\n").encode()).hexdigest()
-    assert words_sha256 == "2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda"
+    assert (
+        words_sha256
+        == "2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda"
+    )
     return words
+
 
 # The BIP39 wordlist (English) is directly integrated to this Python file to make it a standalone file.
 # Used by the encode function to map 0-based word indices to the specified words.
@@ -284,7 +289,9 @@ INDEX_TO_WORD_TABLE: Tuple[str, ...] = verify_wordlist(
 # fmt: on
 
 # Used by the decode function to map the given words back to their 0-based indices.
-WORD_TO_INDEX_TABLE: Dict[str, int] = {word: i for i, word in enumerate(INDEX_TO_WORD_TABLE)}
+WORD_TO_INDEX_TABLE: Dict[str, int] = {
+    word: i for i, word in enumerate(INDEX_TO_WORD_TABLE)
+}
 
 # Number of PBKDF2 round to generate seed
 PBKDF2_ROUNDS = 2048
@@ -313,6 +320,7 @@ PBKDF2_ROUNDS = 2048
 ###                                                                                                                  ###
 ########################################################################################################################
 
+
 def encode_bytes(entropy: bytes) -> str:
     """Converts a given sequence of bytes into a BIP39 mnemonic phrase. This implementation only covers the English
     BIP39 wordlist as other wordlist are often poorly supported by other software and hardware devices.
@@ -331,7 +339,9 @@ def encode_bytes(entropy: bytes) -> str:
     checksum = hashlib.sha256(entropy).digest()[0] >> (8 - num_bits_checksum)
 
     # Covert the entropy to a number of easier handling of the 11-bit parts and append the checksum.
-    entropy_and_checksum = (int.from_bytes(entropy, byteorder="big") << num_bits_checksum) | checksum
+    entropy_and_checksum = (
+        int.from_bytes(entropy, byteorder="big") << num_bits_checksum
+    ) | checksum
 
     # Convert each 11 bit chunk into a word.
     remaining_data = entropy_and_checksum
@@ -352,7 +362,9 @@ def decode_phrase(phrase: str) -> bytes:
     wordlist as other wordlist are often poorly supported by other software and hardware devices.
     """
     if not all(c in " abcdefghijklmnopqrstuvwxyz" for c in phrase):
-        raise DecodingError(f"Invalid mnemonic phrase {repr(phrase)} provided, phrase contains an invalid character.")
+        raise DecodingError(
+            f"Invalid mnemonic phrase {repr(phrase)} provided, phrase contains an invalid character."
+        )
 
     words = phrase.split()
     num_bits_entropy = get_entropy_bits(len(words))
@@ -372,27 +384,34 @@ def decode_phrase(phrase: str) -> bytes:
     bits >>= num_bits_checksum
     data = bits.to_bytes(num_bits_entropy // 8, byteorder="big")
 
-    checksum_for_verification = hashlib.sha256(data).digest()[0] >> (8 - num_bits_checksum)
+    checksum_for_verification = hashlib.sha256(data).digest()[0] >> (
+        8 - num_bits_checksum
+    )
     if checksum != checksum_for_verification:
-        raise DecodingError(f"Invalid mnemonic phrase {repr(phrase)} provided, checksum invalid!")
+        raise DecodingError(
+            f"Invalid mnemonic phrase {repr(phrase)} provided, checksum invalid!"
+        )
 
     return data
 
+
 def check_phrase(phrase: str) -> bool:
-    """ Only checks the checksum of a phrase and returns true if valid and false otherwise """
-    try: 
-        decode_phrase(phrase) 
+    """Only checks the checksum of a phrase and returns true if valid and false otherwise"""
+    try:
+        decode_phrase(phrase)
     except DecodingError:
         return False
     return True
 
+
 def normalize_string(txt: str) -> str:
-    """ As we only consider english wordlists and str input """
+    """As we only consider english wordlists and str input"""
     assert type(txt) is str
     return unicodedata.normalize("NFKD", txt)
 
+
 def phrase_to_seed(phrase: str, passphrase: str = "") -> bytes:
-    decode_phrase(phrase) # check phrase and raise exception on error
+    decode_phrase(phrase)  # check phrase and raise exception on error
     phrase = normalize_string(phrase)
     passphrase = "mnemonic" + normalize_string(passphrase)
     phrase_bytes = phrase.encode("utf-8")
@@ -401,6 +420,7 @@ def phrase_to_seed(phrase: str, passphrase: str = "") -> bytes:
         "sha512", phrase_bytes, passphrase_bytes, PBKDF2_ROUNDS
     )
     return stretched[:64]
+
 
 def get_entropy_bits(num_words: int) -> int:
     """Returns the number of entropy bits in a mnemonic phrase with the given number of words.
@@ -424,6 +444,7 @@ class AppError(Exception):
     def __init__(self, message: str):
         super().__init__(f"ERROR: {message} \nExiting.\n")
 
+
 class EncodingError(AppError):
     """Raised if a given sequences of bytes cannot be encoded as BIP39 mnemonic phrase."""
 
@@ -436,13 +457,14 @@ class DecodingError(AppError):
 ### Cli Client  ########################################################################################################
 ########################################################################################################################
 
+
 def main():
     parser = cli_argparse_setup()
     args = parser.parse_args()
 
     if args.verbose:
         print("Parsed command line arguments:")
-        #pprint.pprint(vars(args))
+        # pprint.pprint(vars(args))
         print(vars(args))
         print()
 
@@ -479,19 +501,21 @@ def cli_argparse_setup() -> argparse.ArgumentParser:
         required=True,
         metavar="encode|decode|toseed",
     )
-    cli_argparse_setup_encode(parsers.add_parser(
-        "encode", 
-        help="Encode given bytes to BIP39 mnemonic phrase"))
-    cli_argparse_setup_decode(parsers.add_parser(
-        "decode", 
-        help="Decode given BIP39 mnemonic phrase to bytes"))
-    cli_argparse_setup_toseed(parsers.add_parser(
-        "toseed",
-        help="recover a BIP39 mnemonic phrase from a set of shares",
-        #usage='usage: bip39.py [-h] ',
+    cli_argparse_setup_encode(
+        parsers.add_parser("encode", help="Encode given bytes to BIP39 mnemonic phrase")
+    )
+    cli_argparse_setup_decode(
+        parsers.add_parser("decode", help="Decode given BIP39 mnemonic phrase to bytes")
+    )
+    cli_argparse_setup_toseed(
+        parsers.add_parser(
+            "toseed",
+            help="recover a BIP39 mnemonic phrase from a set of shares",
+            # usage='usage: bip39.py [-h] ',
         )
     )
     return root_parser
+
 
 def cli_argparse_setup_encode(parser: argparse.ArgumentParser):
     parser.add_argument(
@@ -500,12 +524,14 @@ def cli_argparse_setup_encode(parser: argparse.ArgumentParser):
         help="The data bytes in given format as string",
     )
 
+
 def cli_argparse_setup_decode(parser: argparse.ArgumentParser):
     parser.add_argument(
         "phrase",
         type=str,
         help="The BIP39 mnemonic phrase (12, 15, 18, 21, or 24 words supported, English only)",
     )
+
 
 def cli_argparse_setup_toseed(parser: argparse.ArgumentParser):
     parser.add_argument(
@@ -519,33 +545,36 @@ def cli_argparse_setup_toseed(parser: argparse.ArgumentParser):
         help="The BIP39 mnemonic passphrase used with PBKDF2 to generate the master seed",
     )
 
+
 def cli_encode(
     data: str,
     verbose: bool = False,
     _selftest_enabled: bool = True,
     **_,
-    ) -> List[Tuple[int, str]]:
-    if verbose: 
-        print("Encondig data : ",data)
+) -> List[Tuple[int, str]]:
+    if verbose:
+        print("Encondig data : ", data)
     data_bytes = bytes.fromhex(data)
     mnc = encode_bytes(data_bytes)
     if verbose:
-        print("Mnemoinic     :  ",end="")
+        print("Mnemoinic     :  ", end="")
     print(mnc)
+
 
 def cli_decode(
     phrase: str,
     verbose: bool = False,
     _selftest_enabled: bool = True,
     **_,
-    ) -> List[Tuple[int, str]]:
-    if verbose: 
-        print("Decoding  mnemonic : ",phrase)
+) -> List[Tuple[int, str]]:
+    if verbose:
+        print("Decoding  mnemonic : ", phrase)
     data_bytes = decode_phrase(phrase)
 
     if verbose:
-        print("Data               :  ",end="")
+        print("Data               :  ", end="")
     print(data_bytes.hex())
+
 
 def cli_toseed(
     phrase: str,
@@ -553,15 +582,16 @@ def cli_toseed(
     verbose: bool = False,
     _selftest_enabled: bool = True,
     **_,
-    ) -> List[Tuple[int, str]]:
-    if verbose: 
-        print("Mnemonic           : ",phrase)
-        print("Passphrase         : ",passphrase)
-    seed_bytes = phrase_to_seed(phrase,passphrase)
+) -> List[Tuple[int, str]]:
+    if verbose:
+        print("Mnemonic           : ", phrase)
+        print("Passphrase         : ", passphrase)
+    seed_bytes = phrase_to_seed(phrase, passphrase)
 
     if verbose:
-        print("Seed               :  ",end="")
+        print("Seed               :  ", end="")
     print(seed_bytes.hex())
+
 
 ########################################################################################################################
 ### Entry Point  #######################################################################################################
