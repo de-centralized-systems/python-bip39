@@ -464,7 +464,7 @@ def main():
 def cli_argparse_setup() -> argparse.ArgumentParser:
     root_parser = argparse.ArgumentParser(
         description="bip39: A simple self-contained implementation of BIP39 in python",
-        epilog="TODO add stuff here",
+        epilog="For details see https://github.com/de-centralized-systems/python-bip39",
     )
     root_parser.add_argument(
         "-v",
@@ -495,10 +495,6 @@ def cli_argparse_setup() -> argparse.ArgumentParser:
 
 def cli_argparse_setup_encode(parser: argparse.ArgumentParser):
     parser.add_argument(
-        "--input-type",
-        choices={"raw", "hexstring"},
-    )
-    parser.add_argument(
         "data",
         type=str,
         help="The data bytes in given format as string",
@@ -506,20 +502,12 @@ def cli_argparse_setup_encode(parser: argparse.ArgumentParser):
 
 def cli_argparse_setup_decode(parser: argparse.ArgumentParser):
     parser.add_argument(
-        "--output-type",
-        choices={"raw", "hexstring"},
-    )
-    parser.add_argument(
         "phrase",
         type=str,
         help="The BIP39 mnemonic phrase (12, 15, 18, 21, or 24 words supported, English only)",
     )
 
 def cli_argparse_setup_toseed(parser: argparse.ArgumentParser):
-    parser.add_argument(
-        "--output-type",
-        choices={"raw", "hexstring"},
-    )
     parser.add_argument(
         "phrase",
         type=str,
@@ -531,23 +519,15 @@ def cli_argparse_setup_toseed(parser: argparse.ArgumentParser):
         help="The BIP39 mnemonic passphrase used with PBKDF2 to generate the master seed",
     )
 
-
 def cli_encode(
     data: str,
-    input_type: Optional[str] = None,
     verbose: bool = False,
     _selftest_enabled: bool = True,
     **_,
     ) -> List[Tuple[int, str]]:
     if verbose: 
-        print("Input Type    : ",input_type)
         print("Encondig data : ",data)
-    if (input_type == "hexstring"):
-        data_bytes = bytes.fromhex(data)
-    elif (input_type == "raw"):
-        data_bytes = data
-    else:
-        raise EncodingError("Invalid input type provided")
+    data_bytes = bytes.fromhex(data)
     mnc = encode_bytes(data_bytes)
     if verbose:
         print("Mnemoinic     :  ",end="")
@@ -555,48 +535,33 @@ def cli_encode(
 
 def cli_decode(
     phrase: str,
-    output_type: Optional[str] = None,
     verbose: bool = False,
     _selftest_enabled: bool = True,
     **_,
     ) -> List[Tuple[int, str]]:
     if verbose: 
-        print("Output Type        : ",output_type)
         print("Decoding  mnemonic : ",phrase)
     data_bytes = decode_phrase(phrase)
-    if (output_type == "hexstring"):
-        data = data_bytes.hex()
-    elif (output_type == "raw"):
-        data = data_bytes
-    else:
-        raise EncodingError("Invalid output type provided")
+
     if verbose:
         print("Data               :  ",end="")
-    print(data)
+    print(data_bytes.hex())
 
 def cli_toseed(
     phrase: str,
     passphrase: str,
-    output_type: Optional[str] = None,
     verbose: bool = False,
     _selftest_enabled: bool = True,
     **_,
     ) -> List[Tuple[int, str]]:
     if verbose: 
-        print("Output Type        : ",output_type)
         print("Mnemonic           : ",phrase)
         print("Passphrase         : ",passphrase)
     seed_bytes = phrase_to_seed(phrase,passphrase)
 
-    if (output_type == "hexstring"):
-        seed = seed_bytes.hex()
-    elif (output_type == "raw"):
-        seed = seed_bytes
-    else:
-        raise EncodingError("Invalid output type provided")
     if verbose:
         print("Seed               :  ",end="")
-    print(seed)
+    print(seed_bytes.hex())
 
 ########################################################################################################################
 ### Entry Point  #######################################################################################################
