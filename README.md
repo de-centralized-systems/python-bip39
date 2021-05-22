@@ -1,6 +1,6 @@
 # python-bip39
 
-This aims to be a simple and well tested BIP39 implementaion in python, which intentionally only supports the core
+This aims to be a simple and well tested BIP39 implementaion in Python, which intentionally only supports the core
 properties of the [specification](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) i.e.,:
 
 * encode data to mnemonic 
