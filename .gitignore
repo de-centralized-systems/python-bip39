@@ -1,6 +1,6 @@
 dist/
 build/
-src/bip39.egg-info
+*.egg-info
 
 __pycache__
 .ipynb_checkpoints
