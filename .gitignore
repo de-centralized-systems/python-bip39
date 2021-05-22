@@ -1,0 +1,9 @@
+dist/
+build/
+src/bip39.egg-info
+
+__pycache__
+.ipynb_checkpoints
+*.pyc
+
+

@@ -1,0 +1,4 @@
+include tests/bip39_en.txt
+include tests/test_bip39.py
+include tests/testvectors.json
+include tests/bip39
