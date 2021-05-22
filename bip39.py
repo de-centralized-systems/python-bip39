@@ -4,6 +4,7 @@ import argparse
 import hashlib  # for checking integrity of wordlist and mnemonic phrase checksum
 import hmac  # for toseed functionality
 import unicodedata  # as required by toseed functionality to perform NFKD normalization of mnemonic phrase
+import sys
 
 from typing import Tuple, Dict, Optional, List  # for typing
 
