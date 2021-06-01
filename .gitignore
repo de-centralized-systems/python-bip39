@@ -1,9 +1,15 @@
+# buiding python package
 dist/
 build/
 *.egg-info
 
+# python
 __pycache__
 .ipynb_checkpoints
 *.pyc
 
+# dev env
+.vscode/
 
+# virtualenv
+venv/
